@@ -12,7 +12,11 @@ BATTLEMETRICS_ID = "25216465"
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-import a2s
+
+QUERY_IP = "hll2.taskforcekoala.com.au"
+QUERY_PORT = 26965
+
+from a2s import A2S_INFO
 
 QUERY_IP = "hll2.taskforcekoala.com.au"
 QUERY_PORT = 26965
@@ -20,7 +24,7 @@ QUERY_PORT = 26965
 def get_server_data():
     address = (QUERY_IP, QUERY_PORT)
 
-    info = a2s.info(address, timeout=5)
+    info = A2S_INFO(address, timeout=5)
 
     players = info.player_count
     max_players = info.max_players
