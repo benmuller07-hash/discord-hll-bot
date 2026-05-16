@@ -1,30 +1,22 @@
 import discord
 import asyncio
-
 import os
+import a2s
+
 TOKEN = os.getenv("TOKEN")
 GUILD_ID = 857180887421288448
 BOT_NAME = "Digger HLL"
 
-# Replace with your server ID from BattleMetrics or API
-BATTLEMETRICS_ID = "25216465"
+QUERY_IP = "hll2.taskforcekoala.com.au"
+QUERY_PORT = 26965
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-
-QUERY_IP = "hll2.taskforcekoala.com.au"
-QUERY_PORT = 26965
-
-from a2s import A2S_INFO
-
-QUERY_IP = "hll2.taskforcekoala.com.au"
-QUERY_PORT = 26965
-
 def get_server_data():
     address = (QUERY_IP, QUERY_PORT)
 
-    info = A2S_INFO(address, timeout=5)
+    info = a2s.info(address, timeout=5)
 
     players = info.player_count
     max_players = info.max_players
