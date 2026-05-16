@@ -1,5 +1,4 @@
 import discord
-import requests
 import asyncio
 
 import os
@@ -13,16 +12,22 @@ BATTLEMETRICS_ID = "25216465"
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-def get_server_data():
-    url = f"https://api.battlemetrics.com/servers/{BATTLEMETRICS_ID}"
-    res = requests.get(url).json()
+import a2s
 
-    data = res["data"]["attributes"]
-    players = data["players"]
-    max_players = data["maxPlayers"]
-    map_name = data["details"]["map"]
+QUERY_IP = "hll2.taskforcekoala.com.au"
+QUERY_PORT = 26965
+
+def get_server_data():
+    address = (QUERY_IP, QUERY_PORT)
+
+    info = a2s.info(address, timeout=5)
+
+    players = info.player_count
+    max_players = info.max_players
+    map_name = info.map_name
 
     return players, max_players, map_name
+
 async def update_status():
     await client.wait_until_ready()
 
