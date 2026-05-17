@@ -1,26 +1,30 @@
 import discord
+import requests
 import asyncio
 import os
-import a2s
 
 TOKEN = os.getenv("TOKEN")
+
 GUILD_ID = 857180887421288448
 BOT_NAME = "Digger HLL"
 
-QUERY_IP = "hll2.taskforcekoala.com.au"
-QUERY_PORT = 26965
+# Your BattleMetrics server ID
+BATTLEMETRICS_ID = "39070835"
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
 def get_server_data():
-    address = (QUERY_IP, QUERY_PORT)
+    url = f"https://api.battlemetrics.com/servers/{BATTLEMETRICS_ID}"
 
-    info = a2s.info(address, timeout=5)
+    res = requests.get(url).json()
 
-    players = info.player_count
-    max_players = info.max_players
-    map_name = info.map_name
+    data = res["data"]["attributes"]
+
+    players = data.get("players", 0)
+    max_players = data.get("maxPlayers", 100)
+
+    map_name = data.get("details", {}).get("map", "Unknown Map")
 
     return players, max_players, map_name
 
@@ -55,10 +59,10 @@ async def update_status():
 
         await asyncio.sleep(60)
 
-
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
+
     client.loop.create_task(update_status())
 
 client.run(TOKEN)
