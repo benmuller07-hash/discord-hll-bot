@@ -1,32 +1,33 @@
-import discord
-import requests
-import asyncio
 import os
+import asyncio
+import requests
+import discord
 
 TOKEN = os.getenv("TOKEN")
 
 GUILD_ID = 857180887421288448
 BOT_NAME = "Digger HLL"
+BATTLEMETRICS_ID = "25216465"
+UPDATE_INTERVAL = 60
 
-# Your BattleMetrics server ID
-BATTLEMETRICS_ID = "39070835"
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
+
 def get_server_data():
     url = f"https://api.battlemetrics.com/servers/{BATTLEMETRICS_ID}"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
 
-    res = requests.get(url).json()
+    attributes = response.json()["data"]["attributes"]
 
-    data = res["data"]["attributes"]
-
-    players = data.get("players", 0)
-    max_players = data.get("maxPlayers", 100)
-
-    map_name = data.get("details", {}).get("map", "Unknown Map")
+    players = attributes.get("players", 0)
+    max_players = attributes.get("maxPlayers", 100)
+    map_name = attributes.get("details", {}).get("map", "Unknown Map")
 
     return players, max_players, map_name
+
 
 async def update_status():
     await client.wait_until_ready()
@@ -34,35 +35,32 @@ async def update_status():
     guild = client.get_guild(GUILD_ID)
 
     if guild is None:
-        print("ERROR: Could not find the Discord server.")
-        print("Check that GUILD_ID is correct and the bot is invited to that server.")
-        print("Servers this bot is in:")
-        for g in client.guilds:
-            print(f"- {g.name}: {g.id}")
+        print("ERROR: Bot cannot find the Discord server.")
+        for server in client.guilds:
+            print(f"- {server.name}: {server.id}")
         return
-
-    bot_member = guild.me
 
     while not client.is_closed():
         try:
             players, max_players, map_name = get_server_data()
 
-            await bot_member.edit(nick=BOT_NAME)
-
-            activity = discord.Game(f"{players}/{max_players} - {map_name}")
-            await client.change_presence(activity=activity)
+            await guild.me.edit(nick=BOT_NAME)
+            await client.change_presence(
+                activity=discord.Game(f"{players}/{max_players} - {map_name}")
+            )
 
             print(f"Updated: {players}/{max_players} - {map_name}")
 
-        except Exception as e:
-            print("Error:", e)
+        except Exception as error:
+            print(f"Error updating status: {error}")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(UPDATE_INTERVAL)
+
 
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
-
     client.loop.create_task(update_status())
+
 
 client.run(TOKEN)
